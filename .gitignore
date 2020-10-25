@@ -1,0 +1,14 @@
+# package directories
+node_modules
+
+#ide directories
+.idea
+
+# Serverless directories
+.serverless
+
+# database dump directory
+dump
+
+# local serverless.yml
+serverless.yml

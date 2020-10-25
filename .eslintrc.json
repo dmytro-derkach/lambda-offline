@@ -1,0 +1,39 @@
+{
+    "env": {
+        "commonjs": true,
+        "es6": true,
+        "node": true
+    },
+    "extends": ["eslint:recommended", "plugin:prettier/recommended", "plugin:import/errors", "plugin:import/warnings"],
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+    },
+    "parserOptions": {
+        "ecmaVersion": 2018
+    },
+    "rules": {
+        "prettier/prettier": "error",
+        "semi": ["error", "always"],
+        "quotes": ["error", "double"],
+        "import/no-unresolved": [2, {"commonjs": true, "amd": true}],
+        "import/named": 2,
+        "import/namespace": 2,
+        "import/default": 2,
+        "import/export": 2
+    },
+    "settings": {
+        "import/resolver": {
+            "alias": {
+                "map": [
+                    ["@constants", "./config/constants.js"],
+                    ["@vars", "./config/vars.js"],
+                    ["@middlewares", "./middlewares"],
+                    ["@validators", "./validators"],
+                    ["@services", "./services"]
+                ],
+                "extensions": [".ts", ".js", ".jsx", ".json"]
+            }
+        }
+    }
+}

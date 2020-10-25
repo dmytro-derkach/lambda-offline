@@ -1,0 +1,75 @@
+service: lambda-offline
+
+plugins:
+  - serverless-domain-manager
+  - serverless-plugin-warmup
+
+custom:
+  customDomain:
+    domainName: api.offline.derkachhub.com
+    basePath: ''
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+  settings:
+    ACCOUNT_ID: "338027781746"
+    REGION: "eu-central-1"
+    DATABASE_NAME: "lambda-offline"
+    CONSUMER_QUEUE_URL: "https://sqs.eu-central-1.amazonaws.com/338027781746/lambda-offline-consumer"
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 512
+  region: eu-central-1
+  stage: prod
+  environment: ${self:custom.settings}
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "sqs:sendMessage"
+      Resource: "arn:aws:sqs:${self:provider.region}:${self:provider.environment.ACCOUNT_ID}:lambda-offline*"
+    - Effect: "Allow"
+      Action:
+        - "ssm:Describe*"
+        - "ssm:Get*"
+        - "ssm:List*"
+      Resource: "*"
+    - Effect: 'Allow'
+      Action:
+        - 'lambda:InvokeFunction'
+      Resource:
+        - Fn::Join:
+          - ':'
+          - - arn:aws:lambda
+            - Ref: AWS::Region
+            - Ref: AWS::AccountId
+            - function:${self:service}-${opt:stage, self:provider.stage}-*
+
+functions:
+  provider:
+    handler: handlers/provider.handler
+    timeout: 30
+    events:
+      - schedule: rate(1 minute)
+
+  consumer:
+    handler: handlers/consumer.handler
+    timeout: 30
+    warmup: true
+    events:
+      - sqs:
+          arn: "arn:aws:sqs:${self:provider.region}:${self:provider.environment.ACCOUNT_ID}:lambda-offline-consumer"
+          batchSize: 1
+          enabled: true
+
+  api:
+    handler: handlers/api.handler
+    warmup: true
+    events:
+      - http:
+          path: /
+          method: get
+      - http:
+          path: /{proxy+}
+          method: get
